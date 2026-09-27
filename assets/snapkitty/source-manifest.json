@@ -1,0 +1,118 @@
+{
+  "repository": "https://github.com/SNAPKITTYWEST/snapkitty-2d",
+  "commit": "2a9314984723affc01aafcd31c4d2a6858dd16ca",
+  "files": [
+    {
+      "source": "art/civilization.jpg",
+      "path": "art/civilization.jpg",
+      "bytes": 605588,
+      "sha256": "560114843cdde8834771b08aaf5130190c215bcf56771420fda33b3a69055d0d",
+      "git_blob": "6e0069394259333ede3d0a7cb64ec04d8dc51d15",
+      "width": 1320,
+      "height": 880,
+      "mode": "RGB",
+      "transparent": false
+    },
+    {
+      "source": "art/kitten.jpg",
+      "path": "art/kitten.jpg",
+      "bytes": 316701,
+      "sha256": "49ca2191fda8c44aab8dc852a63bebe3af805deefdbba0f2cd45be7edc0907c5",
+      "git_blob": "332282b974640cf96f599267adc4fbfc6521c9a8",
+      "width": 1320,
+      "height": 1320,
+      "mode": "RGB",
+      "transparent": false
+    },
+    {
+      "source": "art/kitten.png",
+      "path": "art/kitten.png",
+      "bytes": 1016545,
+      "sha256": "f52ec70ff5fbfd6c9fd09c9cdb39d3c263c5d4301b91a4ced483011ca1df45f3",
+      "git_blob": "e8e764c4e059c8fa81ed78335396b8361d922e5a",
+      "width": 1320,
+      "height": 1320,
+      "mode": "RGBA",
+      "transparent": true
+    },
+    {
+      "source": "art/snap-os.jpg",
+      "path": "art/snap-os.jpg",
+      "bytes": 307687,
+      "sha256": "a37710ee48448b03a978f084996549c27eafdf820d46703621e7d84a4d57e4b2",
+      "git_blob": "d0bc5717d7b9babcf65bffff2ad8813b191c6923",
+      "width": 1320,
+      "height": 880,
+      "mode": "RGB",
+      "transparent": false
+    },
+    {
+      "source": "art/suited-man.jpg",
+      "path": "art/suited-man.jpg",
+      "bytes": 347109,
+      "sha256": "b72a3df0b2aae60010d3f30ef8722d659c0282f3ffd1e6a4fddc0241889c5404",
+      "git_blob": "6d31688381dc93bb533f35e0e60f9db7ba564d36",
+      "width": 1320,
+      "height": 1320,
+      "mode": "RGB",
+      "transparent": false
+    },
+    {
+      "source": "art/suited-man.png",
+      "path": "art/suited-man.png",
+      "bytes": 979481,
+      "sha256": "dcadcf72892ec067a74e1655b009b70e5c8b5f3d9192f7aef5c7eccc038342b2",
+      "git_blob": "731074d01595784c6568c3418131eda3f0287380",
+      "width": 1320,
+      "height": 1320,
+      "mode": "RGBA",
+      "transparent": true
+    },
+    {
+      "source": "web/preview_composite.png",
+      "path": "web/preview_composite.png",
+      "bytes": 708880,
+      "sha256": "f661f75012d47bc0a551f01a90cfd38d777bb605175ef531dfff013c7b459a67",
+      "git_blob": "202494492ad9bb81b311bdaf3e3489583493a157",
+      "width": 960,
+      "height": 540,
+      "mode": "RGB",
+      "transparent": false
+    },
+    {
+      "source": "LICENSE",
+      "path": "reference/LICENSE",
+      "bytes": 34523,
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+      "git_blob": "be3f7b28e564e7dd05eaf59d64adba1a4065ac0e"
+    },
+    {
+      "source": "README.md",
+      "path": "reference/README.md",
+      "bytes": 2296,
+      "sha256": "3ac8607a0398e15c310b17b57f0b13c548190e5d69af1992075ac9b20554ed30",
+      "git_blob": "82da211c53edfee056550ee2ec0b816f40a6a851"
+    },
+    {
+      "source": "UnrealProject/README.md",
+      "path": "reference/UnrealProject/README.md",
+      "bytes": 1538,
+      "sha256": "ef8cfab3d0793bd2439deb5b96b208c5528043cdebfcf28cf9372897a846d52b",
+      "git_blob": "4aae26523f1b196e2e07cf93e331643ae2f53e81"
+    },
+    {
+      "source": "UnrealProject/Source/Snapkitty2D/SnapkittyHUD.cs",
+      "path": "reference/UnrealProject/Source/Snapkitty2D/SnapkittyHUD.cs",
+      "bytes": 2487,
+      "sha256": "3c975334862a6b09a119e11a3a445d51acbb0fcb5c28a0b57ea222899261ed26",
+      "git_blob": "ba93d33510521fd217be03576f9fe2d33a455dd2"
+    },
+    {
+      "source": "index.html",
+      "path": "reference/index.html",
+      "bytes": 13777,
+      "sha256": "373db3983f31f9379ae8224da526eab3f16fddf89168ba5229277c6a90a60bc4",
+      "git_blob": "efd4e254fdd11d06c0c63d8054e9dccda812af9c"
+    }
+  ]
+}

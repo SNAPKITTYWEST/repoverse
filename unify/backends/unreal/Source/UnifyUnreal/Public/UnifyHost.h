@@ -17,6 +17,7 @@ class UNIFYUNREAL_API AUnifyHost : public AActor
     GENERATED_BODY()
 public:
     AUnifyHost();
+    virtual ~AUnifyHost() override;
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type Reason) override;
     virtual void Tick(float DeltaSeconds) override;
@@ -24,7 +25,7 @@ public:
 
     /// UNIFY asset root (scenes/, prefabs/, textures/ ...), relative to the project directory.
     UPROPERTY(EditAnywhere, Category = "UNIFY") FString AssetRoot = TEXT("Unify/assets");
-    UPROPERTY(EditAnywhere, Category = "UNIFY") FString BootScene = TEXT("title");
+    UPROPERTY(EditAnywhere, Category = "UNIFY") FString BootScene = TEXT("snapkitty");
 
     void DrawToCanvas(UCanvas* Canvas);
 

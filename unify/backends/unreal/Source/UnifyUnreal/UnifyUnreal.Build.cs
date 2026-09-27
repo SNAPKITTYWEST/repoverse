@@ -1,30 +1,38 @@
-// Links the platform-independent UNIFY engine (built with CMake: libunify_engine.a + liblua.a)
-// into an Unreal runtime module. Set UNIFY_ROOT to the UNIFY checkout and UNIFY_BUILD to its
-// CMake build directory before generating project files.
 using System;
 using System.IO;
 using UnrealBuildTool;
-
 public class UnifyUnreal : ModuleRules
 {
     public UnifyUnreal(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "InputCore", "AudioMixer", "SlateCore" });
-
-        string Root = Environment.GetEnvironmentVariable("UNIFY_ROOT") ?? Path.Combine(ModuleDirectory, "../../../..");
-        string Build = Environment.GetEnvironmentVariable("UNIFY_BUILD") ?? Path.Combine(Root, "build");
+        CppStandard = CppStandardVersion.Cpp17;
+        bEnableExceptions = true;
+        bUseRTTI = true;
+        PublicDependencyModuleNames.AddRange(new[] {
+            "Core", "CoreUObject", "Engine", "InputCore", "AudioMixer", "SlateCore", "RenderCore", "RHI"
+        });
+        string Root = Environment.GetEnvironmentVariable("UNIFY_ROOT");
+        string Build = Environment.GetEnvironmentVariable("UNIFY_BUILD");
+        if (String.IsNullOrEmpty(Root) || String.IsNullOrEmpty(Build))
+            throw new BuildException("Run unreal/Prepare-Unreal.ps1 in this shell to set UNIFY_ROOT and UNIFY_BUILD.");
         PublicIncludePaths.Add(Path.Combine(Root, "engine"));
         PublicIncludePaths.Add(Path.Combine(Root, "third_party/lua/src"));
-
-        string Lib = Target.Platform == UnrealTargetPlatform.Win64 ? ".lib" : ".a";
         string Prefix = Target.Platform == UnrealTargetPlatform.Win64 ? "" : "lib";
-        PublicAdditionalLibraries.Add(Path.Combine(Build, Prefix + "unify_engine" + Lib));
-        PublicAdditionalLibraries.Add(Path.Combine(Build, Prefix + "lua" + Lib));
-
-        // UNIFY replaces global operator new for allocation accounting; Unreal owns operator new
-        // in its own modules, so the engine library must be built with UNIFY_NO_GLOBAL_NEW=ON for UE.
+        string Ext = Target.Platform == UnrealTargetPlatform.Win64 ? ".lib" : ".a";
+        foreach (string Name in new[] {"unify_engine", "lua"})
+        {
+            string Library = Path.Combine(Build, Prefix + Name + Ext);
+            if (!File.Exists(Library))
+                throw new BuildException("Missing UNIFY library: " + Library);
+            PublicAdditionalLibraries.Add(Library);
+        }
         PublicDefinitions.Add("UNIFY_UNREAL=1");
-        bEnableExceptions = true;  // Lua is compiled as C++ and reports script errors via exceptions
+        PublicDefinitions.Add("UNIFY_NO_GLOBAL_NEW=1");
+        string Assets = Path.Combine(Target.ProjectFile.Directory.FullName, "Unify", "assets");
+        if (Directory.Exists(Assets))
+            foreach (string FilePath in Directory.GetFiles(Assets, "*", SearchOption.AllDirectories))
+                if (!FilePath.EndsWith(".usav"))
+                    RuntimeDependencies.Add(FilePath, StagedFileType.NonUFS);
     }
 }

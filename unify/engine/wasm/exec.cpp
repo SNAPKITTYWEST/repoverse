@@ -8,6 +8,10 @@
 namespace unify::wasm {
 
 namespace {
+// Portable integer bit operations for GCC, Clang and MSVC.
+inline uint32_t leading_zeros(uint32_t x) { uint32_t n=32; for (;x;x>>=1) --n; return n; }
+inline uint32_t trailing_zeros(uint32_t x) { if (!x) return 32; uint32_t n=0; while (!(x&1)) {++n;x>>=1;} return n; }
+inline uint32_t population(uint32_t x) { uint32_t n=0; while (x) {x&=x-1;++n;} return n; }
 inline uint32_t f2b(float f) { uint32_t b; std::memcpy(&b, &f, 4); return b; }
 inline float b2f(uint64_t b) { uint32_t x = uint32_t(b); float f; std::memcpy(&f, &x, 4); return f; }
 inline uint64_t d2b(double d) { uint64_t b; std::memcpy(&b, &d, 8); return b; }
@@ -264,9 +268,9 @@ bool Instance::run(uint32_t idx, std::vector<uint64_t>& stack, std::string& trap
             F64CMP(0x61, a == b) F64CMP(0x62, a != b) F64CMP(0x63, a < b) F64CMP(0x64, a > b) F64CMP(0x65, a <= b) F64CMP(0x66, a >= b)
 
             // ---- i32 arithmetic
-            case 0x67: { uint32_t a = uint32_t(TOP()); TOP() = a ? uint32_t(__builtin_clz(a)) : 32; break; }
-            case 0x68: { uint32_t a = uint32_t(TOP()); TOP() = a ? uint32_t(__builtin_ctz(a)) : 32; break; }
-            case 0x69: TOP() = uint32_t(__builtin_popcount(uint32_t(TOP()))); break;
+            case 0x67: { uint32_t a = uint32_t(TOP()); TOP() = a ? leading_zeros(a) : 32; break; }
+            case 0x68: { uint32_t a = uint32_t(TOP()); TOP() = a ? trailing_zeros(a) : 32; break; }
+            case 0x69: TOP() = population(uint32_t(TOP())); break;
 #define I32BIN(opc, expr) case opc: { uint32_t b = uint32_t(POP()), a = uint32_t(POP()); stack.push_back(uint32_t(expr)); break; }
             I32BIN(0x6A, a + b) I32BIN(0x6B, a - b) I32BIN(0x6C, a * b)
             case 0x6D: { int32_t b = int32_t(POP()), a = int32_t(POP()); if (b == 0) TRAP("integer divide by zero"); if (a == INT32_MIN && b == -1) TRAP("integer overflow"); stack.push_back(uint32_t(a / b)); break; }

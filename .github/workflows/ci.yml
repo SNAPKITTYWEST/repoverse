@@ -54,7 +54,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: unify-playtest-screenshots
-          path: unify/build/*.png
+          path: |
+            unify/build/*.png
+            unify/build/snapkitty-evidence/*.png
 
   unify-sanitizers:
     runs-on: ubuntu-24.04

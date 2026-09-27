@@ -11,7 +11,8 @@ using namespace unify;
 
 int main(int argc, char** argv) {
     EngineConfig config;
-    config.title = "UNIFY - platformer demo";
+    config.title = "Repoverse - SNAPKITTY: Bifrost Runner";
+    config.boot_scene = "snapkitty";
     config.asset_root = UNIFY_DEFAULT_ASSETS;
     bool headless = false;
     long frames = -1;

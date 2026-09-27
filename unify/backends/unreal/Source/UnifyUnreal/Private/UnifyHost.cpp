@@ -14,6 +14,8 @@ AUnifyHost::AUnifyHost()
     RootComponent = Synth;
 }
 
+AUnifyHost::~AUnifyHost() = default;
+
 void AUnifyHost::BeginPlay()
 {
     Super::BeginPlay();

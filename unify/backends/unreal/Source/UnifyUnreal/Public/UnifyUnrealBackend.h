@@ -6,6 +6,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CanvasItem.h"
 #include "Components/SynthComponent.h"
 #include "runtime/backend.h"
 #include "UnifyUnrealBackend.generated.h"
@@ -48,6 +49,7 @@ class UNIFYUNREAL_API UUnifySynthComponent : public USynthComponent
 {
     GENERATED_BODY()
 public:
+    FCriticalSection MixerLock;
     unify::Mixer* Mixer = nullptr;
 protected:
     virtual bool Init(int32& SampleRate) override;
