@@ -1,0 +1,26 @@
+name: Repoverse core
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet build -warnaserror
+      - run: dotnet test --no-build
+      - uses: actions/checkout@v4
+        with:
+          repository: SNAPKITTYWEST/BOBS-Many-Voxel-Worlds
+          path: sample
+          fetch-depth: 0 # local ingest reads commit history
+      - name: Generate a world from the sample monorepo
+        run: |
+          dotnet run --project src/Repoverse.Cli --no-build -- ingest-local sample --owner SNAPKITTYWEST --subprojects --out out/snapshot.json
+          dotnet run --project src/Repoverse.Cli --no-build -- generate --snapshot out/snapshot.json --out out/manifest.json
+          dotnet run --project src/Repoverse.Cli --no-build -- stats --manifest out/manifest.json

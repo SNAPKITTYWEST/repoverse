@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repoverse Preview</title>
+<!-- Developer preview of generator output (world-mesh.json from `repoverse export-mesh`).
+     This checks geometry and manifest data by eye; the shipped renderer is Unreal. -->
+<style>
+  :root { --bg:#0e1116; --panel:rgba(20,24,31,.86); --line:rgba(255,255,255,.12); --text:#e6e9ef; --muted:#9aa3b2; --accent:#7cc4ff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 ui-sans-serif, system-ui, sans-serif; overflow: hidden; }
+  canvas { display: block; }
+  .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; backdrop-filter: blur(8px); }
+  #hud { top: 16px; left: 16px; max-width: min(360px, calc(100vw - 32px)); }
+  #inspector { top: 16px; right: 16px; width: min(340px, calc(100vw - 32px)); display: none; max-height: calc(100vh - 32px); overflow: auto; }
+  h1 { font-size: 14px; margin: 0 0 4px; } h2 { font-size: 14px; margin: 0 0 2px; word-break: break-all; }
+  .muted { color: var(--muted); } .why { color: var(--muted); font-size: 11px; }
+  label { display: inline-flex; gap: 6px; align-items: center; margin-right: 12px; cursor: pointer; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 8px 0; } dt { color: var(--muted); } dd { margin: 0; }
+  ul { margin: 6px 0 0; padding-left: 16px; } li { margin: 1px 0; }
+  @media (max-width: 640px) { #inspector { top: auto; bottom: 16px; max-height: 45vh; } }
+</style>
+<script type="importmap">{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }</script>
+</head>
+<body>
+<div id="hud" class="panel">
+  <h1>Repoverse · generator preview</h1>
+  <div id="stats" class="muted">loading world-mesh.json…</div>
+  <div style="margin-top:8px">
+    <label><input type="checkbox" id="roofs" checked> roofs</label>
+    <label><input type="checkbox" id="objects" checked> source objects</label>
+  </div>
+  <div class="muted" style="margin-top:6px">drag to orbit · scroll to zoom · click a building</div>
+</div>
+<div id="inspector" class="panel"></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// Material-family base colours, lightened per block role so walls, floors and windows read apart.
+const FAMILY = { stone:0x9a948a, concrete:0xb8bcc2, glass:0x8fc7e8, metal:0x8c96a3, wood:0xb88a5a, ceramic:0xe2d6c4,
+  electronics:0x5e7b8f, laboratory:0xdfe7ec, archive:0xc9a86b, security:0x5b6275 };
+const BLOCK = { grass:0x5f8f4e, road:0x3b3f46, sidewalk:0x9fa3a8, soil:0x6b5237, bedrock:0x333333, foundation:0x7f7a72,
+  ladder:0xd9a441, scaffold:0xe0b030 };
+const OBJECT = { SourceTerminal:0x7cc4ff, TestBench:0x7de3a1, ProofVault:0xc39bff, ArchiveShelf:0xe8c47c, BuildStation:0xff9d6b,
+  DataRack:0x5fd4d0, ConfigPanel:0xb0b8c4, AssetCrate:0xd28ac7, NotebookDesk:0xf2e28a, HardwareBench:0xff6b6b };
+
+const colorFor = (block, family) => {
+  const b = block.toLowerCase(), f = family.toLowerCase();
+  if (BLOCK[b] !== undefined) return new THREE.Color(BLOCK[b]);
+  const c = new THREE.Color(FAMILY[f] ?? 0xaaaaaa);
+  if (b === 'window') return c.lerp(new THREE.Color(0x9fd8ff), .6);
+  if (b === 'roof') return c.multiplyScalar(.72);
+  if (b === 'floor') return c.multiplyScalar(.85);
+  if (b === 'partition') return c.lerp(new THREE.Color(0xffffff), .3);
+  return c;
+};
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xbfd6e6);
+scene.fog = new THREE.Fog(0xbfd6e6, 900, 3200);
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 1, 8000);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x6b5a45, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(.6, 1, .35); scene.add(sun);
+
+// Terrain outside exported chunks: a plane just below the ground surface (y = GroundLevel = 8).
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(20000, 20000), new THREE.MeshLambertMaterial({ color: 0x5f8f4e }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = 7.9; scene.add(ground);
+
+const world = await (await fetch(new URLSearchParams(location.search).get('data') ?? 'world-mesh.json')).json();
+const roofMeshes = [];
+let quads = 0;
+const NORMALS = [null, [1,0,0], [0,1,0], [0,0,1]];
+for (const g of world.groups) {
+  const n = g.normals.length; quads += n;
+  const pos = new Float32Array(g.positions), nor = new Float32Array(n * 12), idx = new Uint32Array(n * 6);
+  for (let q = 0; q < n; q++) {
+    const s = Math.sign(g.normals[q]), v = NORMALS[Math.abs(g.normals[q])];
+    for (let k = 0; k < 4; k++) nor.set([v[0]*s, v[1]*s, v[2]*s], (q*4+k)*3);
+    idx.set([q*4, q*4+1, q*4+2, q*4, q*4+2, q*4+3], q*6);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  geo.setIndex(new THREE.BufferAttribute(idx, 1));
+  const glass = g.block === 'Window';
+  const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: colorFor(g.block, g.material), transparent: glass, opacity: glass ? .55 : 1 }));
+  scene.add(mesh);
+  if (g.block === 'Roof') roofMeshes.push(mesh);
+}
+
+const box = new THREE.BoxGeometry(.8, .8, .8);
+const objects = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial(), world.objects.length);
+world.objects.forEach((o, i) => {
+  objects.setMatrixAt(i, new THREE.Matrix4().makeTranslation(o.x + .5, o.y + .4, o.z + .5));
+  objects.setColorAt(i, new THREE.Color(OBJECT[o.kind] ?? 0xffffff));
+});
+scene.add(objects);
+
+// Invisible pick volumes, one per building.
+const pickables = world.buildings.map(b => {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(b.width, b.height, b.depth), new THREE.MeshBasicMaterial({ visible: false }));
+  m.position.set(b.x + b.width / 2, 8 + b.height / 2, b.z + b.depth / 2);
+  m.userData = b; scene.add(m); return m;
+});
+
+const bounds = new THREE.Box3();
+pickables.forEach(p => bounds.expandByObject(p));
+const center = bounds.getCenter(new THREE.Vector3()), size = bounds.getSize(new THREE.Vector3()).length();
+controls.target.copy(center);
+camera.position.copy(center).add(new THREE.Vector3(size * .35, size * .45, size * .55));
+
+document.getElementById('stats').textContent =
+  `${world.buildings.length} buildings · ${quads.toLocaleString()} quads · ${world.groups.length} material groups · ${world.objects.length} source objects · seed ${world.worldSeed}`;
+document.getElementById('roofs').onchange = e => roofMeshes.forEach(m => m.visible = e.target.checked);
+document.getElementById('objects').onchange = e => objects.visible = e.target.checked;
+
+function inspect(b, target) {
+  const el = document.getElementById('inspector');
+  el.style.display = 'block';
+  el.innerHTML = `<h2>${esc(b.repo)}</h2><div class="muted">${esc(b.description)}</div>
+    <dl><dt>category</dt><dd>${esc(b.category)}<div class="why">${esc(b.categoryWhy)}</div></dd>
+    <dt>district</dt><dd>${esc(b.district)}</dd><dt>archetype</dt><dd>${esc(b.archetype)}</dd>
+    <dt>floors</dt><dd>${b.floors}</dd><dt>activity</dt><dd>${esc(b.activity)}</dd><dt>state</dt><dd>${esc(b.construction)}</dd></dl>
+    <div class="muted">rooms</div><ul>${b.rooms.map(r => `<li>${esc(r.name)} <span class="muted">· ${esc(r.purpose)} · floor ${r.floor} · ${r.fileCount} files</span></li>`).join('')}</ul>`;
+  controls.target.copy(target);
+}
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+let down = null;
+renderer.domElement.addEventListener('pointerdown', e => down = [e.clientX, e.clientY]);
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 4) return;
+  ptr.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(pickables)[0];
+  const el = document.getElementById('inspector');
+  if (!hit) { el.style.display = 'none'; return; }
+  inspect(hit.object.userData, hit.object.position);
+});
+
+// ?focus=owner/repo frames one building and opens its inspector (deep link, §76).
+const focus = new URLSearchParams(location.search).get('focus');
+const focused = pickables.find(p => p.userData.repo === focus?.toLowerCase());
+if (focused) {
+  const b = focused.userData;
+  inspect(b, focused.position);
+  camera.position.copy(focused.position).add(new THREE.Vector3(b.width * 1.1, b.height + 34, b.depth * 1.6));
+}
+
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+window.__ready = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+# Repoverse: engine-independent core
+
+This is the C# domain core of **SNAPKITTY REPOVERSE** (Master Directive, Part I). It turns GitHub
+repositories into a deterministic world manifest and a chunked voxel world. Open `Repoverse.sln` in Rider.
+
+```
+GitHub / local git ──► CanonicalRepository ──► Classifier ──► WorldManifest ──► WorldGenerator ──► Chunk ──► GreedyMesher
+   (Ingestion/)          (Model/)            (Generation/)   (Generation/)      (Voxels/)                   (Voxels/)
+```
+
+Nothing in `Repoverse.Core` depends on Unreal. The engine consumes the manifest and chunk data. It
+never becomes the source of truth (§5).
+
+## What is built and tested
+
+| Directive § | What exists | Where |
+|---|---|---|
+| 6 Canonical model | GitHub facts, kept separate from derived values; every derived value carries `Provenance` | `Model/` |
+| 25–27 Ingestion | GitHub REST client: `Link` pagination, ETag conditional requests with a disk cache, rate-limit detection, failures isolated per repo. Local-git ingester for offline use and monorepos | `Ingestion/GitHubIngest.cs`, `LocalGitIngest.cs` |
+| 27 Offline | Merges snapshots per repo. An empty or rate-limited refresh never replaces good data; unreached repos are kept and marked stale | `Ingestion/SnapshotStore.cs` |
+| 8 Seeds | FNV-1a and SplitMix64, stable across processes and platforms (`string.GetHashCode` is not) | `Generation/Seed.cs` |
+| 9–10, 80, 82–83 | Rule-based classifier with whole-word keyword scoring (purpose outweighs language), districts, archetypes, JSON overrides, landmarks | `Generation/Classifier.cs`, `Overrides.cs` |
+| 7, 85 Manifest | Deterministic manifest. Placement is sticky: existing buildings keep their plot when repos are added | `Generation/ManifestBuilder.cs` |
+| 78–79, 87–89 Interiors | Room graph built from the directory tree, with ignore rules (`node_modules`, `target`…) and semantic compression down to a room budget. Reachability is validated | `Generation/RoomGraph.cs` |
+| 11–12 Voxels | 16-bit packed voxels, 32³ chunks (64 KiB each). Interactive objects are entities, not voxels | `Voxels/Voxel.cs`, `BuildingRasterizer.cs` |
+| 11, 13 Streaming | Nearest-first async generation on the thread pool, bounded in-flight work, hysteresis unloading, cancellation. Player edits are stored apart from procedural state | `Voxels/ChunkStreamer.cs`, `WorldGenerator.cs` |
+| 14 Meshing | Greedy mesher with cross-chunk face culling and per-material draw groups | `Voxels/GreedyMesher.cs` |
+| 26, 32 Events | Typed events computed by diffing two snapshots (added, archived, release, activity, structure…) | `Simulation/WorldEvents.cs` |
+| 31 Clock | Fixed-step simulation clock, decoupled from frame rate: speed, pause, scheduling, spiral-of-death guard | `Simulation/SimulationClock.cs` |
+| 42–43 Saves | Versioned save of player state and edits, with a v1→v2 migration. Saves from a newer build are refused | `Persistence/SaveGame.cs` |
+| 76–77 URIs | `repoverse://owner/repo/path#L12`, `?room=`, `@x,y,z`; maps back to GitHub URLs | `RepoverseUri.cs` |
+
+There are 72 xUnit tests (`tests/`). They check behaviour, not constructors: determinism, sticky placement, no
+overlapping plots, room reachability found by flood-filling walkable air in the rasterized geometry, greedy
+quads covering exactly the visible faces, streaming memory bounded while travelling, edits surviving
+unload/reload, ETag cache hits, rate limits, partial failures, offline fallback, token redaction, save
+migration, and URI round-trips.
+
+## Run it
+
+Requires the .NET 8 SDK and git.
+
+```bash
+dotnet test
+# Offline: any git checkout works; --subprojects treats each top-level folder as a repo.
+git clone https://github.com/SNAPKITTYWEST/BOBS-Many-Voxel-Worlds.git ../BOBS-Many-Voxel-Worlds
+dotnet run --project src/Repoverse.Cli -- ingest-local ../BOBS-Many-Voxel-Worlds --owner SNAPKITTYWEST --subprojects --out out/snapshot.json
+dotnet run --project src/Repoverse.Cli -- generate --snapshot out/snapshot.json --out out/manifest.json
+dotnet run --project src/Repoverse.Cli -- stats --manifest out/manifest.json
+dotnet run --project src/Repoverse.Cli -- export-mesh --manifest out/manifest.json --out preview/world-mesh.json
+# then serve preview/ (e.g. `python3 -m http.server -d preview`) and open index.html?focus=snapkittywest/quantum-world
+
+# Live GitHub (token read from the environment, never stored):
+GITHUB_TOKEN=... dotnet run --project src/Repoverse.Cli -- ingest-github SNAPKITTYWEST --out out/snapshot.json
+```
+
+On the 15 sub-projects of `BOBS-Many-Voxel-Worlds`: 15 buildings, about 60 chunks generated in 30–40 ms,
+and about 170k visible faces meshed into about 7.2k quads (about 4% of naive).
+
+`preview/index.html` is a Three.js developer view of the exported mesh, used to check the generator by
+eye. It is not the game renderer.
+
+## Not built yet
+
+These need tools this repository's CI and cloud sessions don't have. They are left out rather than stubbed (§2):
+
+- **Unreal / C++**: the engine project, the chunk-mesh upload (`ChunkMesh.Quads` maps directly onto
+  `UProceduralMeshComponent` or a RealtimeMesh), and Lumen/Nanite materials.
+- **Swift control plane** (§33–34) and the **CSS token layer** (§35) for in-engine UI.
+- **CAD import pipeline** (§24).
+- **Dependency extraction**: the `DependsOn` edges are modelled and rendered into the manifest, but not yet
+  parsed from `Cargo.toml`, `package.json` and similar files.
+- Parts II and III of the directive (agents, simulation, 388-repo scale, packaging).
+
+## Known limits
+
+- Classification is keyword and file-extension rules. `.v` counts as both Coq and Verilog. Ties
+  break by category order, and the provenance string shows when that happened. Use `overrides.json` for intent.
+- One floor plan (a corridor spine) for every archetype. Archetype-specific shells are future work.
+- The local ingester's "releases" are git tags, and only for whole-repo ingests.
