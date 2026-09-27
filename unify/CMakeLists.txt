@@ -12,13 +12,22 @@ endif()
 # The same binary must produce bit-identical simulation results run to run.
 set(UNIFY_FP_FLAGS -ffp-contract=off -fno-fast-math)
 
+# MinGW: link the C++ runtime statically so executables don't pick up a mismatched libstdc++ from PATH.
+if(MINGW)
+  add_link_options(-static)
+endif()
+
 # ---- Lua 5.4 (vendored, unmodified) -----------------------------------------------------
 file(GLOB LUA_SOURCES third_party/lua/src/*.c)
 # Compiled as C++: Lua errors then use C++ exceptions instead of longjmp.
 set_source_files_properties(${LUA_SOURCES} PROPERTIES LANGUAGE CXX)
 add_library(lua STATIC ${LUA_SOURCES})
 target_include_directories(lua PUBLIC third_party/lua/src)
-target_compile_definitions(lua PRIVATE LUA_USE_POSIX)
+if(WIN32)
+  target_compile_definitions(lua PRIVATE LUA_USE_WINDOWS)
+else()
+  target_compile_definitions(lua PRIVATE LUA_USE_POSIX)
+endif()
 target_compile_options(lua PRIVATE -w ${UNIFY_FP_FLAGS})
 
 # ---- Engine core (no platform dependencies) ---------------------------------------------
@@ -46,7 +55,7 @@ else()
 endif()
 
 # ---- Demo game ----------------------------------------------------------------------------
-set(UNIFY_GAME_ASSETS ${CMAKE_SOURCE_DIR}/game/assets)
+set(UNIFY_GAME_ASSETS ${PROJECT_SOURCE_DIR}/game/assets)
 add_executable(unify_assetgen tools/assetgen.cpp)
 target_link_libraries(unify_assetgen PRIVATE unify_engine)
 # Binary assets (sprites, SFX, music) are generated, not committed.
@@ -78,5 +87,5 @@ target_compile_options(unify_tests PRIVATE ${UNIFY_FP_FLAGS})
 enable_testing()
 target_compile_definitions(unify_tests PRIVATE UNIFY_GAME_ASSETS="${UNIFY_GAME_ASSETS}")
 add_dependencies(unify_tests unify_assets)
-add_test(NAME unify_tests COMMAND unify_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME unify_tests COMMAND unify_tests WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_test(NAME unify_playtest COMMAND unify_playtest ${UNIFY_GAME_ASSETS} ${CMAKE_BINARY_DIR})

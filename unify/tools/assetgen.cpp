@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include <sys/stat.h>
+#include <filesystem>
 
 using namespace unify;
 
@@ -152,7 +152,7 @@ static std::vector<int16_t> render_music(int* loop_start, int* loop_end) {
 int main(int argc, char** argv) {
     if (argc < 2) { std::fprintf(stderr, "usage: unify_assetgen <assets-dir>\n"); return 2; }
     std::string root = argv[1];
-    for (const char* d : {"textures", "audio", "music", "saves"}) mkdir((root + "/" + d).c_str(), 0755);
+    for (const char* d : {"textures", "audio", "music", "saves"}) std::filesystem::create_directories(root + "/" + d);
 
     std::vector<std::pair<std::string, Image>> sprites;
     const char* poses[8] = {"player_idle_0", "player_idle_1", "player_run_0", "player_run_1", "player_run_2", "player_run_3", "player_jump", "player_fall"};

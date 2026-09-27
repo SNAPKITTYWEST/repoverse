@@ -161,5 +161,7 @@ device, and a GPU device would plug in at the same interface.
   needs Emscripten, which isn't available here. The engine core has no platform dependencies, so it is
   a backend-sized job. UNIFY's WASM *runtime* for kernels is fully built.
 - **Unreal backend**: see the table above.
+- **Compilers**: builds with GCC and Clang, and with MinGW-w64 GCC on Windows (runtime linked statically).
+  MSVC is not supported: the code uses `__builtin_clz` and `__uint128_t`.
 - Audio decodes PCM16 WAV only. Physics has no joints. Scissor rectangles are not applied on the Unreal
   backend. The software renderer is the only render device.
