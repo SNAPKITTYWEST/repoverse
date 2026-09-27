@@ -128,3 +128,9 @@ These need tools this repository's CI and cloud sessions don't have. They are le
   break by category order, and the provenance string shows when that happened. Use `overrides.json` for intent.
 - One floor plan (a corridor spine) for every archetype. Archetype-specific shells are future work.
 - The local ingester's "releases" are git tags, and only for whole-repo ingests.
+
+## SNAPKITTY game and Unreal host
+
+[Play/build guide](docs/SNAPKITTY-GAME.md) · [Unreal setup](unreal/README.md)
+
+The Unify launcher now opens an asset-backed SNAPKITTY menu, a playable Bifrost Runner level, and a read-only repository browser exported from the C# manifest. The same Lua game and artwork are wired into an Unreal host project. See the guides for verified native behavior and the Unreal compilation boundary.

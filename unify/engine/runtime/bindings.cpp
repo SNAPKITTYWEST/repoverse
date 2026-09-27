@@ -249,7 +249,7 @@ int in_pointer(lua_State* L) { Vec2 p = E(L).input().pointer(); lua_pushnumber(L
 uint16_t key_code(const std::string& n) {
     static const std::map<std::string, uint16_t> keys = {
         {"space", key::Space}, {"left", key::Left}, {"right", key::Right}, {"up", key::Up}, {"down", key::Down},
-        {"a", key::A}, {"d", key::D}, {"w", key::W}, {"s", key::S}, {"r", key::R}, {"p", key::P},
+        {"e", key::E}, {"i", key::I}, {"a", key::A}, {"d", key::D}, {"w", key::W}, {"s", key::S}, {"r", key::R}, {"p", key::P},
         {"enter", key::Enter}, {"escape", key::Escape}, {"f1", key::F1}, {"f2", key::F2}, {"f3", key::F3},
         {"f5", key::F5}, {"f9", key::F9}, {"shift", key::LShift}, {"mouse_left", key::MouseLeft},
         {"pad_a", key::PadA}, {"pad_b", key::PadB}, {"pad_x", key::PadX}, {"pad_y", key::PadY}, {"pad_start", key::PadStart},
@@ -301,6 +301,15 @@ int ui_text(lua_State* L) {
 int ui_rect(lua_State* L) {
     require_render(L);
     E(L).renderer().fill_screen_rect({num(L, 2), num(L, 3), num(L, 4), num(L, 5)}, color_args(L, 6), 999);
+    return 0;
+}
+int ui_image(lua_State* L) {
+    require_render(L);
+    const char* name = luaL_checkstring(L, 2);
+    const TextureAsset* tex = E(L).texture(name);
+    if (!tex) return luaL_error(L, "image '%s' could not be loaded", name);
+    E(L).renderer().screen_rect(tex->texture.bits, {0, 0, float(tex->width), float(tex->height)},
+        {num(L, 3), num(L, 4), num(L, 5), num(L, 6)}, color_args(L, 7), int16_t(luaL_optinteger(L, 11, 998)));
     return 0;
 }
 int ui_width(lua_State* L) { lua_pushnumber(L, E(L).font().width(luaL_checkstring(L, 2), opt(L, 3, 2))); return 1; }
@@ -558,7 +567,7 @@ void register_bindings(Engine& engine) {
     static const luaL_Reg input_fns[] = {{"is_pressed", in_pressed}, {"is_held", in_held}, {"is_released", in_released}, {"axis", in_axis},
                                          {"buffered", in_buffered}, {"consume", in_consume}, {"pointer", in_pointer}, {"bind", in_bind}, {"bind_axis", in_bind_axis}, {nullptr, nullptr}};
     static const luaL_Reg camera_fns[] = {{"set", cam_set}, {"get", cam_get}, {nullptr, nullptr}};
-    static const luaL_Reg ui_fns[] = {{"text", ui_text}, {"rect", ui_rect}, {"width", ui_width}, {"screen", ui_screen}, {nullptr, nullptr}};
+    static const luaL_Reg ui_fns[] = {{"text", ui_text}, {"image", ui_image}, {"rect", ui_rect}, {"width", ui_width}, {"screen", ui_screen}, {nullptr, nullptr}};
     static const luaL_Reg timer_fns[] = {{"after", timer_after}, {"every", timer_every}, {nullptr, nullptr}};
     static const luaL_Reg scene_fns[] = {{"transition", scene_transition}, {"current", scene_current}, {"state", scene_state}, {nullptr, nullptr}};
     static const luaL_Reg engine_fns[] = {{"tick", engine_tick}, {"time", engine_time}, {"quit", engine_quit}, {"state_hash", engine_hash}, {"stats", engine_stats}, {nullptr, nullptr}};

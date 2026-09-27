@@ -16,7 +16,7 @@ enum class InputEventType : uint8_t { ButtonDown, ButtonUp, ButtonRepeat, Axis, 
 /// Engine-level key/button codes (platform backends translate into these).
 namespace key {
 enum : uint16_t {
-    Unknown = 0, A = 'a', D = 'd', S = 's', W = 'w', R = 'r', P = 'p',
+    Unknown = 0, E = 'e', I = 'i', A = 'a', D = 'd', S = 's', W = 'w', R = 'r', P = 'p',
     Space = 32, Escape = 27, Enter = 13,
     Left = 256, Right, Up, Down, F5, F9, F1, F2, F3, LShift,
     MouseLeft = 512, MouseRight, MouseMiddle,

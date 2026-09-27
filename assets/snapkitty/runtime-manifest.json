@@ -1,0 +1,34 @@
+[
+  {
+    "source": "assets/snapkitty/art/kitten.png",
+    "runtime": "unify/game/assets/textures/snapkitty/kitten.qoi",
+    "sha256": "f52ec70ff5fbfd6c9fd09c9cdb39d3c263c5d4301b91a4ced483011ca1df45f3",
+    "qoiSha256": "994a3f728f87a01958a7cc9e777e3a9fe397f43dfc389ad9dcae256c6aa8ec51",
+    "width": 1320,
+    "height": 1320
+  },
+  {
+    "source": "assets/snapkitty/art/suited-man.png",
+    "runtime": "unify/game/assets/textures/snapkitty/suited-man.qoi",
+    "sha256": "dcadcf72892ec067a74e1655b009b70e5c8b5f3d9192f7aef5c7eccc038342b2",
+    "qoiSha256": "2052e2b6e328ad1507a6a90fd2137856a34f0fd5a755a0b479535bb7e653b0ff",
+    "width": 1320,
+    "height": 1320
+  },
+  {
+    "source": "assets/snapkitty/art/civilization.jpg",
+    "runtime": "unify/game/assets/textures/snapkitty/civilization.qoi",
+    "sha256": "560114843cdde8834771b08aaf5130190c215bcf56771420fda33b3a69055d0d",
+    "qoiSha256": "1b4464a6040bb3795084ae76d1819b118ea767649f32eb4116081fcc95650eb5",
+    "width": 1320,
+    "height": 880
+  },
+  {
+    "source": "assets/snapkitty/art/snap-os.jpg",
+    "runtime": "unify/game/assets/textures/snapkitty/snap-os.qoi",
+    "sha256": "a37710ee48448b03a978f084996549c27eafdf820d46703621e7d84a4d57e4b2",
+    "qoiSha256": "3c3b05598b2dbbd1ba0d8f2cd63fad22f1cd24ad3aeb83e53635bea68877c787",
+    "width": 1320,
+    "height": 880
+  }
+]

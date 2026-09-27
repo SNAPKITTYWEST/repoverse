@@ -1,3 +1,6 @@
+For the ready-to-configure Repoverse host project and automated setup, see
+[unreal/README.md](../../../unreal/README.md). The manual backend notes follow.
+
 # UNIFY Unreal backend
 
 An Unreal Engine 5 plugin that runs UNIFY games inside Unreal. It implements `unify::Backend`, the same

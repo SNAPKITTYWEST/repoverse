@@ -6,3 +6,7 @@ game/assets/audio/
 game/assets/music/
 game/assets/saves/*.usav
 *.tmp
+
+!game/assets/textures/snapkitty/
+!game/assets/textures/snapkitty/*.qoi
+!game/assets/textures/snapkitty/*.atlas

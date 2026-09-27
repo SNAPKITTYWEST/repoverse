@@ -55,6 +55,8 @@ int main(int argc, char** argv) {
     g.out = argv[2];
     EngineConfig cfg;
     cfg.asset_root = argv[1];
+    const bool snapkitty = argc > 3 && std::string(argv[3]) == "--snapkitty";
+    if (snapkitty) cfg.boot_scene = "snapkitty";
     cfg.seed = 2026;
     g.engine = std::make_unique<Engine>(g.backend, cfg);
     Engine& e = *g.engine;
@@ -69,16 +71,20 @@ int main(int argc, char** argv) {
     // LOAD ASSETS (title scene: script, vadd kernel source, streamed music header)
     g.run(30);
     check(e.assets().live() >= 3, "LOAD ASSETS", std::to_string(e.assets().live()) + " assets resident, " + std::to_string(e.assets().resident_bytes()) + " bytes");
+    if (!snapkitty) {
     bool vadd_ok = false;
     for (auto& l : e.log_lines()) if (l.find("vadd kernel: OK") != std::string::npos) vadd_ok = true;
-    check(vadd_ok && g.num("scene.state().kernel_ok and 1 or 0") == 1, "EXECUTE WASM KERNEL",
+    check(snapkitty || (vadd_ok && g.num("scene.state().kernel_ok and 1 or 0") == 1), "EXECUTE WASM KERNEL",
           "title: C[i]=A[i]+B[i] verified in Lua after " + std::to_string(int(g.num("scene.state().kernel_instructions"))) + " WASM instructions");
+    } else {
+        check(e.assets().find("textures/snapkitty/kitten").bits != 0, "SNAPKITTY FRONTEND", "original kitten texture loaded");
+    }
     g.shot("01_title.png");
 
     // CREATE WORLD
     g.tap(key::Enter);
     g.run(2);
-    bool in_level = e.active_scene() && e.active_scene()->name == "level";
+    bool in_level = e.active_scene() && e.active_scene()->name == (snapkitty ? "snapkitty_level" : "level");
     check(in_level && e.world().alive() > 150 && e.physics().body_count() > 20, "CREATE WORLD",
           "scene '" + std::string(e.active_scene() ? e.active_scene()->name : "?") + "': " + std::to_string(e.world().alive()) + " entities, " +
           std::to_string(e.physics().body_count()) + " bodies");

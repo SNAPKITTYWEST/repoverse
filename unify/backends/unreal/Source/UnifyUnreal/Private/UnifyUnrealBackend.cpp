@@ -5,6 +5,7 @@
 #include "CanvasItem.h"
 #include "HAL/PlatformTime.h"
 #include "InputCoreTypes.h"
+#include "Misc/ScopeLock.h"
 
 // ---------------------------------------------------------------------------------- render device
 
@@ -105,7 +106,7 @@ void FUnifyUnrealRenderDevice::draw(const unify::Batch& Batch)
 void FUnifyUnrealRenderDevice::FlushToCanvas(UCanvas* Canvas, float LogicalWidth, float LogicalHeight)
 {
     if (!Canvas) return;
-    const float Scale = FMath::Max(1.0f, FMath::FloorToFloat(FMath::Min(Canvas->ClipX / LogicalWidth, Canvas->ClipY / LogicalHeight)));
+    const float Scale = FMath::Min(Canvas->ClipX / LogicalWidth, Canvas->ClipY / LogicalHeight);
     const FVector2D Offset((Canvas->ClipX - LogicalWidth * Scale) * 0.5f, (Canvas->ClipY - LogicalHeight * Scale) * 0.5f);
     FCanvasTileItem Background(Offset, FVector2D(LogicalWidth * Scale, LogicalHeight * Scale), ClearColor);
     Canvas->DrawItem(Background);
@@ -143,6 +144,7 @@ bool UUnifySynthComponent::Init(int32& SampleRate)
 int32 UUnifySynthComponent::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 {
     // Audio render thread: UNIFY's mixer is designed to be driven from exactly this kind of thread.
+    FScopeLock Lock(&MixerLock);
     if (Mixer) Mixer->render(OutAudio, uint32(NumSamples / 2));
     else FMemory::Memzero(OutAudio, NumSamples * sizeof(float));
     return NumSamples;
@@ -151,14 +153,17 @@ int32 UUnifySynthComponent::OnGenerateAudio(float* OutAudio, int32 NumSamples)
 bool FUnifyUnrealAudioDevice::start(unify::Mixer& Mixer)
 {
     if (!Synth) return false;
-    Synth->Mixer = &Mixer;
+    { FScopeLock Lock(&Synth->MixerLock); Synth->Mixer = &Mixer; }
     Synth->Start();
     return true;
 }
 
 void FUnifyUnrealAudioDevice::stop()
 {
-    if (Synth) { Synth->Stop(); Synth->Mixer = nullptr; }
+    if (Synth) {
+        { FScopeLock Lock(&Synth->MixerLock); Synth->Mixer = nullptr; }
+        Synth->Stop();
+    }
 }
 
 // ---------------------------------------------------------------------------------- backend
@@ -190,6 +195,9 @@ static uint16 MapKey(const FKey& Key)
     if (Key == EKeys::D) return key::D;
     if (Key == EKeys::W) return key::W;
     if (Key == EKeys::S) return key::S;
+    if (Key == EKeys::E) return key::E;
+    if (Key == EKeys::I) return key::I;
+    if (Key == EKeys::R) return key::R;
     if (Key == EKeys::LeftMouseButton) return key::MouseLeft;
     if (Key == EKeys::Gamepad_FaceButton_Bottom) return key::PadA;
     if (Key == EKeys::Gamepad_FaceButton_Right) return key::PadB;

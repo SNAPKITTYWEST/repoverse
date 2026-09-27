@@ -36,6 +36,7 @@ void SdlAudioDevice::stop() {
 AudioDevice& SdlBackend::audio_device() { return audio_ok_ ? static_cast<AudioDevice&>(audio_) : null_audio_; }
 
 bool SdlBackend::init(const EngineConfig& config, std::string& error) {
+    SDL_SetMainReady();
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0) { error = SDL_GetError(); return false; }
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
         UNIFY_LOG_WARN("AUDIO", "SDL audio subsystem failed (%s); using the null device", SDL_GetError());
