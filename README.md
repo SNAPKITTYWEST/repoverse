@@ -60,6 +60,34 @@ and about 170k visible faces meshed into about 7.2k quads (about 4% of naive).
 `preview/index.html` is a Three.js developer view of the exported mesh, used to check the generator by
 eye. It is not the game renderer.
 
+## Unified engine: compute kernels to WebAssembly
+
+`unified-engine/` is a JavaScript compiler that takes CUDA-style `__global__` kernels and turns them into
+WebAssembly, plus a host runtime that runs them. It needs Node 22+ and has no native dependencies.
+
+| Stage | Files |
+|---|---|
+| Lexer, parser → AST | `kernel/compiler/lexer.js`, `parser.js`, `kernel/ast/ast.js` |
+| AST → typed, structured IR (C scoping and conversions, short-circuit `&&`/`\|\|`) | `kernel/ir/lowering.js`, `kernel/ir/ir.js` |
+| IR → wasm binary (no external toolchain) | `wasm/modules/codegen.js`, `encoder.js`, `wasm/abi/abi.js` |
+| Shared memory, typed device buffers, `launch({grid, block})` | `wasm/runtime/runtime.js` |
+
+```bash
+cd unified-engine && npm ci && npm test   # 55 tests, including a particle-physics step
+```
+
+```js
+const runtime = new KernelRuntime();
+const add = await runtime.load(`__global__ void add(const float* A, const float* B, float* C, int N) {
+  int i = blockIdx.x * blockDim.x + threadIdx.x; if (i < N) C[i] = A[i] + B[i]; }`);
+const C = runtime.alloc('f32', n);
+add.launch({ grid: Math.ceil(n / 256), block: 256 }, runtime.upload(a), runtime.upload(b), C, n);
+C.read();
+```
+
+Limits: x dimension only, one kernel per module, no `__device__` functions, and no per-buffer bounds checks.
+The `test:lua`, `build:kernel` and `demo` scripts point at layers that are not written yet.
+
 ## Not built yet
 
 These need tools this repository's CI and cloud sessions don't have. They are left out rather than stubbed (§2):

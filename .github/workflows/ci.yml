@@ -24,3 +24,16 @@ jobs:
           dotnet run --project src/Repoverse.Cli --no-build -- ingest-local sample --owner SNAPKITTYWEST --subprojects --out out/snapshot.json
           dotnet run --project src/Repoverse.Cli --no-build -- generate --snapshot out/snapshot.json --out out/manifest.json
           dotnet run --project src/Repoverse.Cli --no-build -- stats --manifest out/manifest.json
+
+  unified-engine:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: unified-engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm test

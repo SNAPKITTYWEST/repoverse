@@ -1,0 +1,19 @@
+{
+  "name": "unified-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "2D-first engine with a deterministic Lua orchestration backend and a real WASM-compiled compute kernel pipeline.",
+  "scripts": {
+    "test": "node --test \"tests/*.js\"",
+    "test:kernel": "node --test \"tests/test-kernel-*.js\"",
+    "test:wasm": "node --test \"tests/test-wasm-*.js\"",
+    "test:lua": "node --test tests/lua/",
+    "build:kernel": "node scripts/build-kernels.mjs",
+    "demo": "node examples/demo.mjs",
+    "demo:headless": "node examples/demo.mjs --headless"
+  },
+  "dependencies": {
+    "fengari": "0.1.5"
+  }
+}
