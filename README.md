@@ -88,6 +88,28 @@ C.read();
 Limits: x dimension only, one kernel per module, no `__device__` functions, and no per-buffer bounds checks.
 The `test:lua`, `build:kernel` and `demo` scripts point at layers that are not written yet.
 
+## UNIFY: 2D engine runtime and demo game
+
+`unify/` is a C++17 2D game engine (renderer, physics, audio, input, animation, ECS, Lua 5.4 gameplay, save
+states, rollback buffer), with its own CUDA-like kernel compiler and WASM interpreter, and a small platformer in
+`unify/game/` that exercises all of it. It was merged here with its history kept (`git subtree`). See
+[`unify/README.md`](unify/README.md).
+
+```bash
+cd unify
+cmake -S . -B build -G Ninja
+cmake --build build
+ctest --test-dir build --output-on-failure   # 58 tests + the definition-of-done playtest
+./build/unify_game                           # SDL2 window if libsdl2-dev is installed, else --headless
+```
+
+This builds on Linux (GCC or Clang) and on Windows with MinGW-w64 GCC. MSVC is not supported. The Unreal backend in
+`unify/backends/unreal` has never been compiled.
+
+`unify/engine/kernel` + `unify/engine/wasm` and `unified-engine/` are two independent implementations of the
+same kernel → WASM idea (C++ with its own interpreter, and JavaScript running on the host's WebAssembly). They don't
+share code yet.
+
 ## Not built yet
 
 These need tools this repository's CI and cloud sessions don't have. They are left out rather than stubbed (§2):
