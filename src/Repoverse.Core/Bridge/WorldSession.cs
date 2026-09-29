@@ -22,6 +22,8 @@ public sealed class WorldSession
     public WorldEdits Edits { get; } = new();
     public PlayerState Player { get; private set; }
     public long Tick { get; private set; }
+    public IReadOnlyList<BuilderState> Builders => _builders.Values.ToArray();
+    private readonly Dictionary<string,BuilderState> _builders = new(StringComparer.Ordinal);
     public IReadOnlyList<Destination> Destinations { get; }
     public int Resident => _chunks.Count;
 
@@ -118,7 +120,16 @@ public sealed class WorldSession
         if (_chunks.ContainsKey(c)) _chunks[c] = _generator.Generate(c,Edits);
         foreach (var n in Neighbours(c)) if (_chunks.ContainsKey(n)) _dirty.Add(n);
     }
-    public SaveGame Capture() => SaveGame.Capture(Manifest, Player, Edits, Tick);
+    public BuilderState Build(BuilderPlan plan)
+    {
+        var voxels=BuilderRasterizer.Rasterize(plan);
+        if(!_builders.ContainsKey(plan.Actor) && _builders.Count>=16)throw new ArgumentException("Builder actor limit reached.");
+        var changed=new HashSet<ChunkCoord>();
+        foreach(var v in voxels){Edits.Set(v.X,v.Y,v.Z,new Voxel(v.Packed));changed.Add(ChunkCoord.FromVoxel(v.X,v.Y,v.Z));}
+        foreach(var c in changed){if(_chunks.ContainsKey(c))_chunks[c]=_generator.Generate(c,Edits);foreach(var n in Neighbours(c))if(_chunks.ContainsKey(n))_dirty.Add(n);}
+        var last=voxels[^1];var state=new BuilderState(plan.Actor,plan.Id,last.X+.5,last.Y+1,last.Z+.5,voxels.Count);_builders[plan.Actor]=state;return state;
+    }
+    public SaveGame Capture() => SaveGame.Capture(Manifest, Player, Edits, Tick) with {Builders=Builders};
     public void Restore(SaveGame save)
     {
         if (save.WorldSeed != Manifest.WorldSeed || save.Generator != Manifest.Generator
@@ -127,7 +138,9 @@ public sealed class WorldSession
         Validate(save.Player);
         // Validate in a temporary store before changing the live session.
         var restored = new WorldEdits(); save.RestoreEdits(restored);
+        if(save.Builders.Count>16 || save.Builders.Any(b=>string.IsNullOrWhiteSpace(b.Actor)||b.Actor.Length>64||!double.IsFinite(b.X)||!double.IsFinite(b.Y)||!double.IsFinite(b.Z)) || save.Builders.Select(b=>b.Actor).Distinct().Count()!=save.Builders.Count)throw new InvalidDataException("Invalid saved builders.");
         Edits.Load(restored.Snapshot()); Player = save.Player; Tick = save.SimulationTick;
+        _builders.Clear();foreach(var b in save.Builders)_builders.Add(b.Actor,b);
         foreach (var c in _chunks.Keys.ToArray()) { _chunks[c] = _generator.Generate(c,Edits); _dirty.Add(c); }
     }
 }

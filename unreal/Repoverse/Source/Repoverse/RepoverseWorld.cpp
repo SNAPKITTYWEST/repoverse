@@ -1,3 +1,5 @@
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "RepoverseWorld.h"
 #include "ProceduralMeshComponent.h"
 #include "Camera/CameraComponent.h"
@@ -60,7 +62,7 @@ void ARepoverseWorld::BeginPlay() {
             for(const auto& A:D->GetArrayField(TEXT("actions")))R.Actions.Add(A->AsString());
             Objects.Add(R);
         }
-        RestorePlayer(O->GetObjectField(TEXT("player")));bReady=true;Status=TEXT("Loading nearby district...");
+        ApplyBuilders(O);RestorePlayer(O->GetObjectField(TEXT("player")));bReady=true;Status=TEXT("Loading nearby district...");
     });
 }
 void ARepoverseWorld::Enqueue(FString Route,FString Body,TFunction<void(TSharedPtr<FJsonObject>)> Complete) {
@@ -93,7 +95,7 @@ void ARepoverseWorld::Tick(float Delta) {
             Enqueue(TEXT("/v1/focus"),Encode(O),[this](TSharedPtr<FJsonObject> D){
                 for(const auto& U:D->GetArrayField(TEXT("unloaded"))) {TObjectPtr<UProceduralMeshComponent> M;if(Chunks.RemoveAndCopyValue(U->AsString(),M)&&M)M->DestroyComponent();}
                 for(const auto& C:D->GetArrayField(TEXT("chunks")))ApplyMesh(C->AsObject());
-                Resident=D->GetIntegerField(TEXT("resident"));
+                ApplyBuilders(D);Resident=D->GetIntegerField(TEXT("resident"));
                 bTerrainReady=D->GetIntegerField(TEXT("remaining"))==0;
                 if(bTerrainReady){if(Status==TEXT("Loading nearby district..."))Status=TEXT("District ready");}
             });
@@ -103,6 +105,25 @@ void ARepoverseWorld::Tick(float Delta) {
     if(Player)for(const auto& O:Objects)if(FVector::DistSquared(Player->GetActorLocation(),O.Position)<1000*1000)
         DrawDebugBox(GetWorld(),O.Position,FVector(12,12,20),FColor::Cyan,false,-1,0,2);
     StartNext();
+}
+void ARepoverseWorld::ApplyBuilders(const TSharedPtr<FJsonObject>& Packet) {
+    const TArray<TSharedPtr<FJsonValue>>* Values=nullptr;
+    if(!Packet->TryGetArrayField(TEXT("builders"),Values))return;
+    TSet<FString> Present;
+    for(const auto& Value:*Values){
+        auto B=Value->AsObject();FString Name=B->GetStringField(TEXT("actor"));Present.Add(Name);
+        auto& Body=Builders.FindOrAdd(Name);
+        if(!Body){
+            Body=NewObject<UStaticMeshComponent>(this);Body->SetupAttachment(RootComponent);Body->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube")));
+            Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);Body->RegisterComponent();Body->SetWorldScale3D(FVector(.3,.25,.5));
+            auto Head=NewObject<UStaticMeshComponent>(this);Head->SetupAttachment(Body);Head->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
+            Head->SetCollisionEnabled(ECollisionEnabled::NoCollision);Head->RegisterComponent();Head->SetRelativeLocation(FVector(0,0,85));Head->SetWorldScale3D(FVector(.28));
+        }
+        Body->SetWorldLocation(Position(B)+FVector(0,0,25));
+        DrawDebugString(GetWorld(),Body->GetComponentLocation()+FVector(0,0,65),Name,nullptr,FColor::Cyan,.3f,false);
+    }
+    TArray<FString> Removed;for(const auto& Pair:Builders)if(!Present.Contains(Pair.Key))Removed.Add(Pair.Key);
+    for(const auto& Name:Removed){auto Body=Builders.FindAndRemoveChecked(Name);if(Body){TArray<USceneComponent*> Children;Body->GetChildrenComponents(true,Children);for(auto C:Children)C->DestroyComponent();Body->DestroyComponent();}}
 }
 void ARepoverseWorld::ApplyMesh(const TSharedPtr<FJsonObject>& Packet) {
     const FString Id=Packet->GetStringField(TEXT("id"));
