@@ -225,7 +225,7 @@ function L:update(dt)
     s.time = s.time + dt
     if s.msg_timer > 0 then s.msg_timer = s.msg_timer - 1 end
     if input:is_pressed("save") then save_state(); save_state("slot1") end
-    if input:is_pressed("load") then load_state() end
+    if input:is_pressed("load") then load_state("slot1") end
     if input:is_pressed("menu") then scene.transition("snapkitty"); return end
     if input:is_pressed("talk") then
         local x = s.player:position()

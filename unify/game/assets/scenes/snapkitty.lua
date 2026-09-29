@@ -2,6 +2,7 @@
 local S = {}
 function S:init()
  input:bind("start", "enter", "space", "pad_start", "pad_a")
+ input:bind("continue", "f9")
  input:bind("info", "i")
  input:bind("repos", "r")
  input:bind("quit", "escape")
@@ -14,9 +15,13 @@ end
 function S:update(dt)
  self.state.time=self.state.time+dt
  if input:is_pressed("start") then scene.transition("snapkitty_level") end
+ if input:is_pressed("continue") then load_state("slot1") end
  if input:is_pressed("repos") then scene.transition("repositories") end
  if input:is_pressed("info") then self.state.info=not self.state.info end
  if input:is_pressed("quit") then engine.quit() end
+end
+function S:on_loaded(ok)
+ self.state.load_error = not ok
 end
 function S:render()
  local w,h=ui:screen()
@@ -31,7 +36,8 @@ function S:render()
  ui:text("ENTER / SPACE  -  PLAY",36,200,2,255,255,255)
  ui:text("A/D MOVE   SPACE JUMP   E TALK",28,248,1.4,220,230,245)
  ui:text("F5 SAVE   F9 LOAD   ESC MENU",28,273,1.4,220,230,245)
- ui:text("R REPOSITORIES   I ABOUT   ESC EXIT",28,h-28,1.2,160,180,210)
+ ui:text("F9 CONTINUE   R REPOS   I ABOUT   ESC EXIT",28,h-28,1.2,160,180,210)
+ if self.state.load_error then ui:text("NO SAVED GAME - ENTER TO START",28,302,1.3,255,210,150) end
  if self.state.info then
   ui:rect(20,174,w-40,150,6,12,28,250)
   ui:text("COLLECT EVENTS. REACH THE TERMINAL.",32,193,1.5,130,235,250)

@@ -134,3 +134,11 @@ These need tools this repository's CI and cloud sessions don't have. They are le
 [Play/build guide](docs/SNAPKITTY-GAME.md) · [Unreal setup](unreal/README.md)
 
 The Unify launcher now opens an asset-backed SNAPKITTY menu, a playable Bifrost Runner level, and a read-only repository browser exported from the C# manifest. The same Lua game and artwork are wired into an Unreal host project. See the guides for verified native behavior and the Unreal compilation boundary.
+
+## 3D world bridge (engine validation pending)
+
+The C# sidecar and native Unreal district client are implemented in
+`src/Repoverse.Sidecar`, `src/Repoverse.Core/Bridge`, and the existing Unreal
+module. [Build instructions and exact validation boundary](docs/REPOVERSE-3D.md).
+The service is tested; the Unreal client still requires UBT compilation and a
+real editor playthrough. The older handoff task list remains historical context.

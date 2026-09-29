@@ -14,6 +14,8 @@ jobs:
           dotnet-version: '8.0.x'
       - run: dotnet build -warnaserror
       - run: dotnet test --no-build
+      - name: Exercise the authenticated world sidecar
+        run: python3 tools/test-sidecar.py
       - uses: actions/checkout@v4
         with:
           repository: SNAPKITTYWEST/BOBS-Many-Voxel-Worlds
@@ -78,11 +80,14 @@ jobs:
 
   unify-windows-mingw:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: unify
     steps:
       - uses: actions/checkout@v4
-      - run: cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
-      - run: cmake --build build
-      - run: ctest --test-dir build --output-on-failure
+      - name: Build and test SDL game
+        shell: pwsh
+        run: ./tools/Build-Snapkitty.ps1
+      - name: Package playable game
+        run: python tools/package-snapkitty.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Snapkitty-Windows
+          path: out/Snapkitty-Windows.zip

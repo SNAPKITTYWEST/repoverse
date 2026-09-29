@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5F82D87A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repoverse.Core.Tests", "tests\Repoverse.Core.Tests\Repoverse.Core.Tests.csproj", "{72CB5AFA-688D-4237-A5D7-40BC49B555B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repoverse.Sidecar", "src\Repoverse.Sidecar\Repoverse.Sidecar.csproj", "{0AB89BF5-CB58-4F06-9753-77D84414244B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,10 +36,15 @@ Global
 		{72CB5AFA-688D-4237-A5D7-40BC49B555B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72CB5AFA-688D-4237-A5D7-40BC49B555B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72CB5AFA-688D-4237-A5D7-40BC49B555B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AB89BF5-CB58-4F06-9753-77D84414244B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AB89BF5-CB58-4F06-9753-77D84414244B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AB89BF5-CB58-4F06-9753-77D84414244B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AB89BF5-CB58-4F06-9753-77D84414244B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{FB897333-4192-456C-A1EA-B3B741592B1F} = {196A873E-0AA4-4B28-B58D-D2936643B90D}
 		{A7AECCC2-1FB7-4326-8410-A4673DAAC665} = {196A873E-0AA4-4B28-B58D-D2936643B90D}
 		{72CB5AFA-688D-4237-A5D7-40BC49B555B0} = {5F82D87A-4CE3-468B-9DFD-AC07CB8E0F7F}
+		{0AB89BF5-CB58-4F06-9753-77D84414244B} = {196A873E-0AA4-4B28-B58D-D2936643B90D}
 	EndGlobalSection
 EndGlobal
