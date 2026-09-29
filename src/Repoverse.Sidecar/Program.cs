@@ -46,9 +46,10 @@ app.MapPost("/v1/session", () => {
     var player = session.Player;
     var saved = session.Capture();
     session = new WorldSession(manifest); session.Restore(saved);
-    return new { schemaVersion=1, worldSeed=manifest.WorldSeed, player, destinations=session.Destinations, objects=session.Objects() };
+    return new { schemaVersion=1, worldSeed=manifest.WorldSeed, player, destinations=session.Destinations, objects=session.Objects(), builders=session.Builders };
 });
-app.MapPost("/v1/focus", (FocusRequest r) => session.Focus(r.X,r.Z));
+app.MapPost("/v1/focus", (FocusRequest r) => {var p=session.Focus(r.X,r.Z);return new {p.Unloaded,p.Chunks,p.Remaining,p.Resident,builders=session.Builders};});
+app.MapPost("/v1/build", (BuilderPlan plan) => session.Build(plan));
 app.MapPost("/v1/save", (PlayerState player) => {
     session.SetPlayer(player);
     Directory.CreateDirectory(Path.GetDirectoryName(savePath)!);

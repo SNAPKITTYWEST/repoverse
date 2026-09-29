@@ -9,6 +9,7 @@
 
 class UProceduralMeshComponent;
 class UCameraComponent;
+class UStaticMeshComponent;
 class UMaterialInterface;
 class FJsonObject;
 
@@ -74,6 +75,8 @@ private:
     void Enqueue(FString Route,FString Body,TFunction<void(TSharedPtr<FJsonObject>)> Complete);
     void StartNext();
     void ApplyMesh(const TSharedPtr<FJsonObject>& Packet);
+    void ApplyBuilders(const TSharedPtr<FJsonObject>& Packet);
+    UPROPERTY() TMap<FString,TObjectPtr<UStaticMeshComponent>> Builders;
     void RestorePlayer(const TSharedPtr<FJsonObject>& Player);
     void ReadPage();
 };

@@ -3,6 +3,7 @@ param(
     [string]$SourceRoot,
     [string]$Owner = 'SNAPKITTYWEST',
     [int]$Port = 38473,
+    [string]$BuildPlan,
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
@@ -42,6 +43,13 @@ try {
         try { $null = Invoke-RestMethod "http://127.0.0.1:$Port/v1/health" -Headers @{'X-Repoverse-Token'=$Token}; $Ready=$true; break } catch { Start-Sleep -Milliseconds 100 }
     }
     if (!$Ready) { throw 'World service did not become ready' }
+    if ($BuildPlan) {
+        $BuildFile = Get-Item -LiteralPath $BuildPlan
+        if ($BuildFile.Length -gt 65536) { throw 'Build plan exceeds 64 KiB' }
+        $Body = Get-Content -LiteralPath $BuildFile.FullName -Raw
+        $Receipt = Invoke-RestMethod "http://127.0.0.1:$Port/v1/build" -Method Post -ContentType 'application/json' -Body $Body -Headers @{'X-Repoverse-Token'=$Token}
+        Write-Host "Builder $($Receipt.actor) placed $($Receipt.voxels) voxels. F5 saves the build."
+    }
     $Project = Join-Path $RepoRoot 'unreal\Repoverse\Repoverse.uproject'
     $GameArgs = @(('"'+$Project+'"'), '/Game/Maps/Repoverse?game=/Script/Repoverse.RepoverseWorldMode', '-game', "-RepoverseToken=$Token", "-RepoversePort=$Port", '-windowed', '-ResX=1440', '-ResY=900')
     $Game = Start-Process -FilePath $Editor -ArgumentList $GameArgs -PassThru -Wait

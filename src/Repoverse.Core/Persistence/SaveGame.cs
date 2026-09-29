@@ -1,3 +1,4 @@
+using Repoverse.Core.Bridge;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Repoverse.Core.Generation;
@@ -38,6 +39,7 @@ public sealed record SaveGame
     public required PlayerState Player { get; init; }
     public IReadOnlyList<ChunkEdits> Edits { get; init; } = [];
     public long SimulationTick { get; init; }
+    public IReadOnlyList<BuilderState> Builders { get; init; } = [];
 
     public static SaveGame Capture(WorldManifest manifest, PlayerState player, WorldEdits edits, long tick) => new()
     {

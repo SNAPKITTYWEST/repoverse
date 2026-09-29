@@ -81,3 +81,13 @@ Remaining beyond this vertical slice: rendered dependency graph, architectural
 roof/floor cutaways, remote source retrieval, multi-repository source mappings,
 search/bookmarks, live synchronization, complete camera persistence, transparent
 windows, CAD, Swift control plane, and the absent Parts II/III directive.
+
+## Twin-O-Matic builder
+
+Export a build from the matching Twin-O-Matic browser app, then pass its JSON path to the launcher with `-BuildPlan`. The launcher sends the plan to authenticated `POST /v1/build` before opening Unreal. This leaves browser-origin requests blocked. No generated script is executed.
+
+Version 1 plans carry `id`, `actor`, `units: "voxel"`, integer `origin` (Y-up), and `operations` with shape names and arguments. Boxes, spheres, cylinders, cones and XY-plane tori are supported. The entire plan is validated/rasterized before edits apply. Limits: 128 operations, 262144 candidate samples, 32768 resulting voxels, 16 builder identities per world. Smaller-than-voxel features may vanish; colors quantize to existing material families. Lights/particles are preview-only. Imported blocks can replace existing terrain, so select an empty construction area using the plan origin.
+
+The builder body follows its latest completed build position; this is a representation of accepted build commands, not an autonomous Unreal-hosted language model. F5 stores builder identity and edits; F9 and reconnect restore them. Existing schema-2 saves default to no builders.
+
+Verification: 88 C# tests, real local HTTP build/save/load/reconnect, and a build downloaded by the Twin browser test and submitted to this service. Unreal client changes still require compilation and a real playtest with an installed engine and the user's supplied assets.
