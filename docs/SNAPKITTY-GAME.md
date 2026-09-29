@@ -4,7 +4,8 @@
 
 The native game opens the SNAPKITTY menu. Enter or Space starts Bifrost Runner.
 A/D or arrows move, Space/W jumps, E talks near the Architect, F5 saves, F9
-restores, and Escape returns to the menu. I opens the about panel. R opens the
+restores the disk save (including after restarting), and Escape returns to the menu.
+F9 on the title screen continues the saved game. I opens the about panel. R opens the
 repository browser; Left/Right selects a repository and Escape returns.
 
 Build from the repository root with PowerShell:
@@ -78,3 +79,8 @@ written under unify/build-game/snapkitty-evidence.
 The Unreal Editor is not installed in the inspected locations on this machine.
 Its C++ integration therefore still needs compilation and a PIE check with the
 user's engine version. SDL/headless results do not establish Unreal compilation.
+
+## 3D district integration
+
+See [REPOVERSE-3D.md](REPOVERSE-3D.md) for the new C# sidecar, Unreal client,
+launcher and the remaining Unreal compilation/playtest boundary.

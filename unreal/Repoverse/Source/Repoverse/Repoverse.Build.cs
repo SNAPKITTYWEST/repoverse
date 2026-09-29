@@ -4,6 +4,6 @@ public class Repoverse : ModuleRules
     public Repoverse(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicDependencyModuleNames.AddRange(new[] {"Core","CoreUObject","Engine","UnifyUnreal"});
+        PublicDependencyModuleNames.AddRange(new[] {"Core","CoreUObject","Engine","UnifyUnreal","ProceduralMeshComponent","HTTP","Json","JsonUtilities","InputCore"});
     }
 }

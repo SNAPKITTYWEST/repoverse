@@ -1,3 +1,4 @@
+#include <filesystem>
 #include "test_main.h"
 #include "../engine/input/input.h"
 #include "../engine/audio/audio.h"
@@ -234,7 +235,9 @@ TEST(image_codecs_round_trip) {
     Image back;
     CHECK(decode_qoi(encode_qoi(img), back));
     CHECK(back.pixels == img.pixels);
-    CHECK(write_png("/tmp/unify_test.png", img));
+    const auto png_path = (std::filesystem::temp_directory_path() / "unify_test.png").string();
+    CHECK(write_png(png_path, img));
+    std::filesystem::remove(png_path);
 }
 
 // ------------------------------------------------------------------------------ animation

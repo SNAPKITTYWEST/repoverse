@@ -3,10 +3,14 @@ from pathlib import Path
 import hashlib
 import shutil
 import zipfile
+import argparse
 
 root = Path(__file__).resolve().parents[1]
 build = root / "unify/build-game"
-out = root / "out/Snapkitty-Windows"
+parser = argparse.ArgumentParser()
+parser.add_argument("--output", default="out/Snapkitty-Windows")
+args = parser.parse_args()
+out = (root / args.output).resolve()
 if out.exists():
     raise SystemExit("Package directory already exists; choose a fresh output before packaging.")
 required = [build / "unify_game.exe", build / "SDL2.dll"]
@@ -24,7 +28,7 @@ shutil.copy2(root / "docs/SNAPKITTY-GAME.md", out / "README.md")
 (out / "Play.cmd").write_text('@echo off\ncd /d "%~dp0"\nunify_game.exe --assets "%~dp0assets"\n', encoding="ascii")
 files = sorted(p for p in out.rglob("*") if p.is_file())
 (out / "SHA256SUMS.txt").write_text("".join(hashlib.sha256(p.read_bytes()).hexdigest() + "  " + p.relative_to(out).as_posix() + "\n" for p in files), encoding="utf-8")
-archive = root / "out/Snapkitty-Windows.zip"
+archive = out.with_suffix(".zip")
 with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as z:
     for p in sorted(out.rglob("*")):
         if p.is_file():
